@@ -140,10 +140,10 @@
   //. > Pair(1, 2)
   //. Pair(1, 2)
   //. ```
-  function Pair(a, b) {
-    if (!(this instanceof Pair)) return new Pair(a, b);
-    this.a = a;
-    this.b = b;
+  function Pair(fst, snd) {
+    if (!(this instanceof Pair)) return new Pair(fst, snd);
+    this.fst = fst;
+    this.snd = snd;
   }
 
   //# Pair.@@type :: String
@@ -164,7 +164,7 @@
   //. false
   //. ```
   Pair.prototype['fantasy-land/equals'] = function equals(other) {
-    return Z.equals(this.a, other.a) && Z.equals(this.b, other.b);
+    return Z.equals(this.fst, other.fst) && Z.equals(this.snd, other.snd);
   };
 
   //# Pair#fantasy-land/lte :: (Ord a, Ord b) => Pair a b ~> Pair a b -> Boolean
@@ -180,12 +180,8 @@
   //. false
   //. ```
   Pair.prototype['fantasy-land/lte'] = function lte(other) {
-    return Z.lte(this.a, other.a) && Z.lte(this.b, other.b);
+    return Z.lte(this.fst, other.fst) && Z.lte(this.snd, other.snd);
   };
-
-  function makePair(p, a, b) {
-    return p instanceof Identity ? Identity(b) : Pair(a, b);
-  }
 
   //# Pair#fantasy-land/compose :: Pair a b ~> Pair b c -> Pair a c
   //.
@@ -194,7 +190,7 @@
   //. Pair(1, true)
   //. ```
   Pair.prototype['fantasy-land/compose'] = function compose(other) {
-    return makePair(this, this.a, other.b);
+    return Pair(this.fst, other.snd);
   };
 
   //# Pair#fantasy-land/concat :: (Semigroup a, Semigroup b) => Pair a b ~> Pair a b -> Pair a b
@@ -204,8 +200,7 @@
   //. Pair([1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1])
   //. ```
   Pair.prototype['fantasy-land/concat'] = function concat(other) {
-    return makePair(this,
-                    Z.concat(this.a, other.a), Z.concat(this.b, other.b));
+    return Pair(Z.concat(this.fst, other.fst), Z.concat(this.snd, other.snd));
   };
 
   //# Pair#fantasy-land/map :: Pair a b ~> (b -> c) -> Pair a c
@@ -215,7 +210,7 @@
   //. Pair('hello', 8)
   //. ```
   Pair.prototype['fantasy-land/map'] = function map(f) {
-    return makePair(this, this.a, f(this.b));
+    return Pair(this.fst, f(this.snd));
   };
 
   //# Pair#fantasy-land/ap :: Semigroup a => Pair a b ~> Pair a (b -> c) -> Pair a c
@@ -225,7 +220,7 @@
   //. Pair('hello there', 8)
   //. ```
   Pair.prototype['fantasy-land/ap'] = function ap(other) {
-    return makePair(this, Z.concat(this.a, other.a), other.b(this.b));
+    return Pair(Z.concat(this.fst, other.fst), other.snd(this.snd));
   };
 
   //# Pair#fantasy-land/reduce :: Pair a b ~> ((c, a) -> c, c) -> c
@@ -235,7 +230,7 @@
   //. [1, 2, 3, 4, 5, 6]
   //. ```
   Pair.prototype['fantasy-land/reduce'] = function reduce(f, x) {
-    return f(x, this.b);
+    return f(x, this.snd);
   };
 
   //# Pair#fantasy-land/traverse :: Applicative f => Pair a b ~> (TypeRep f, b -> f c) -> f (Pair a c)
@@ -246,9 +241,7 @@
   //. ```
   Pair.prototype['fantasy-land/traverse'] = function traverse(typeRep, f) {
     var pair = this;
-    return Z.map(function(x) {
-      return makePair(pair, pair.a, x);
-    }, f(pair.b));
+    return Z.map(function(x) { return Pair(pair.fst, x); }, f(pair.snd));
   };
 
   //# Pair#fantasy-land/extend :: Pair a b ~> (Pair a b -> c) -> Pair a c
@@ -258,7 +251,7 @@
   //. Pair('forever', 100)
   //. ```
   Pair.prototype['fantasy-land/extend'] = function extend(f) {
-    return makePair(this, this.a, f(this));
+    return Pair(this.fst, f(this));
   };
 
   //# Pair#fantasy-land/extract :: Pair a b ~> () -> b
@@ -268,7 +261,7 @@
   //. 42
   //. ```
   Pair.prototype['fantasy-land/extract'] = function extract() {
-    return this.b;
+    return this.snd;
   };
 
   //# Pair#toString :: Pair a b ~> () -> String
@@ -278,7 +271,7 @@
   //. 'Pair(1, 2)'
   //. ```
   Pair.prototype.toString = function toString() {
-    return 'Pair(' + Z.toString(this.a) + ', ' + Z.toString(this.b) + ')';
+    return 'Pair(' + Z.toString(this.fst) + ', ' + Z.toString(this.snd) + ')';
   };
 
   //# fst :: Pair a b -> a
@@ -288,7 +281,7 @@
   //. 'hello'
   //. ```
   function fst(p) {
-    return p.a;
+    return p.fst;
   }
 
   //# snd :: Pair a b -> b
@@ -326,9 +319,8 @@
   //. ```
   function Identity(value) {
     if (!(this instanceof Identity)) return new Identity(value);
-    Pair.call(this, Unit, value);
+    this.value = value;
   }
-  Identity.prototype = Object.create(Pair.prototype);
 
   //# Identity.@@type :: String
   //.
@@ -355,6 +347,9 @@
   //. > Z.equals(Identity([1, 2, 3]), Identity([3, 2, 1]))
   //. false
   //. ```
+  Identity.prototype['fantasy-land/equals'] = function equals(other) {
+    return Z.equals(this.value, other.value);
+  };
 
   //# Identity#fantasy-land/lte :: Ord a => Identity a ~> Identity a -> Boolean
   //.
@@ -368,6 +363,9 @@
   //. > Z.lte(Identity(1), Identity(0))
   //. false
   //. ```
+  Identity.prototype['fantasy-land/lte'] = function lte(other) {
+    return Z.lte(this.value, other.value);
+  };
 
   //# Identity#fantasy-land/concat :: Semigroup a => Identity a ~> Identity a -> Identity a
   //.
@@ -375,6 +373,9 @@
   //. > Z.concat(Identity([1, 2, 3]), Identity([4, 5, 6]))
   //. Identity([1, 2, 3, 4, 5, 6])
   //. ```
+  Identity.prototype['fantasy-land/concat'] = function concat(other) {
+    return Identity(Z.concat(this.value, other.value));
+  };
 
   //# Identity#fantasy-land/map :: Identity a ~> (a -> b) -> Identity b
   //.
@@ -382,6 +383,9 @@
   //. > Z.map(Math.sqrt, Identity(64))
   //. Identity(8)
   //. ```
+  Identity.prototype['fantasy-land/map'] = function map(f) {
+    return Identity(f(this.value));
+  };
 
   //# Identity#fantasy-land/ap :: Identity a ~> Identity (a -> b) -> Identity b
   //.
@@ -389,6 +393,9 @@
   //. > Z.ap(Identity(Math.sqrt), Identity(64))
   //. Identity(8)
   //. ```
+  Identity.prototype['fantasy-land/ap'] = function ap(other) {
+    return Identity(other.value(this.value));
+  };
 
   //# Identity#fantasy-land/chain :: Identity a ~> (a -> Identity b) -> Identity b
   //.
@@ -397,7 +404,7 @@
   //. Identity(100)
   //. ```
   Identity.prototype['fantasy-land/chain'] = function(f) {
-    return f(this.b);
+    return f(this.value);
   };
 
   //# Identity#fantasy-land/alt :: Alt a => Identity a ~> Identity a -> Identity a
@@ -407,7 +414,7 @@
   //. Identity([1, 2, 3, 4, 5, 6])
   //. ```
   Identity.prototype['fantasy-land/alt'] = function(other) {
-    return Identity(Z.alt(this.b, other.b));
+    return Identity(Z.alt(this.value, other.value));
   };
 
   //# Identity#fantasy-land/reduce :: Identity a ~> ((b, a) -> b, b) -> b
@@ -416,6 +423,9 @@
   //. > Z.reduce(Z.concat, [1, 2, 3], Identity([4, 5, 6]))
   //. [1, 2, 3, 4, 5, 6]
   //. ```
+  Identity.prototype['fantasy-land/reduce'] = function reduce(f, x) {
+    return f(x, this.value);
+  };
 
   //# Identity#fantasy-land/traverse :: Applicative f => Identity a ~> (TypeRep f, a -> f b) -> f (Identity b)
   //.
@@ -423,6 +433,9 @@
   //. > Z.traverse(Array, x => [x, x], Identity(0))
   //. [Identity(0), Identity(0)]
   //. ```
+  Identity.prototype['fantasy-land/traverse'] = function traverse(typeRep, f) {
+    return Z.map(Identity, f(this.value));
+  };
 
   //# Identity#fantasy-land/extend :: Identity a ~> (Identity a -> b) -> Identity b
   //.
@@ -430,6 +443,9 @@
   //. > Z.extend(identity => Z.extract(identity) + 1, Identity(99))
   //. Identity(100)
   //. ```
+  Identity.prototype['fantasy-land/extend'] = function extend(f) {
+    return Identity(f(this));
+  };
 
   //# Identity#fantasy-land/extract :: Identity a ~> () -> a
   //.
@@ -437,6 +453,9 @@
   //. > Z.extract(Identity(42))
   //. 42
   //. ```
+  Identity.prototype['fantasy-land/extract'] = function extract() {
+    return this.value;
+  };
 
   //# Identity#toString :: Identity a ~> () -> String
   //.
@@ -445,7 +464,7 @@
   //. 'Identity([1, 2, 3])'
   //. ```
   Identity.prototype.toString = function() {
-    return 'Identity(' + Z.toString(this.b) + ')';
+    return 'Identity(' + Z.toString(this.value) + ')';
   };
 
   return {
