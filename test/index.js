@@ -315,9 +315,9 @@ test('laws.Traversable.identity',
 
 test('laws.Traversable.composition',
      laws.Traversable(Z.equals).composition(
-     jsc.constant(Identity),
-     jsc.constant(Pair),
-     PairArb(jsc.string, IdentityArb(PairArb(jsc.string, jsc.number)))));
+       jsc.constant(Identity),
+       jsc.constant(Pair),
+       PairArb(jsc.string, IdentityArb(PairArb(jsc.string, jsc.number)))));
 
 test('laws.Extend.associativity',
      laws.Extend(Z.equals).associativity(
