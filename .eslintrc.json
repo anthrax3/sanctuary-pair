@@ -9,7 +9,7 @@
     {
       "files": ["test/**/*.js"],
       "env": {"node": true},
-      "globals": {"test": true}
+      "globals": {"test": false}
     }
   ]
 }
