@@ -19,7 +19,7 @@
     "jsverify": "0.8.x",
     "sanctuary-def": "0.13.x",
     "sanctuary-identity": "sanctuary-js/sanctuary-identity#223c7b178abf34c9e238a58c565e7771ad475d2a",
-    "sanctuary-scripts": "sanctuary-js/sanctuary-scripts#8a0dd890732b7d24dd749b287baff2ea7d8bfbe2",
+    "sanctuary-scripts": "sanctuary-js/sanctuary-scripts#02ff51dfd31def83b70d47f2f9cb030b0790cc28",
     "sanctuary-type-identifiers": "2.0.1"
   },
   "files": [
