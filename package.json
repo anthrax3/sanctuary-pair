@@ -8,7 +8,10 @@
     "url": "git://github.com/sanctuary-js/sanctuary-pair.git"
   },
   "scripts": {
-    "test": "make lint test"
+    "doctest": "sanctuary-doctest",
+    "lint": "sanctuary-lint",
+    "release": "sanctuary-release",
+    "test": "npm run lint && sanctuary-test && npm run doctest"
   },
   "dependencies": {
     "sanctuary-type-classes": "6.0.x"
@@ -19,7 +22,7 @@
     "jsverify": "0.8.x",
     "sanctuary-def": "0.13.x",
     "sanctuary-identity": "sanctuary-js/sanctuary-identity#223c7b178abf34c9e238a58c565e7771ad475d2a",
-    "sanctuary-scripts": "sanctuary-js/sanctuary-scripts#707661c14d16740a168650350bf7ff7781741aff",
+    "sanctuary-scripts": "sanctuary-js/sanctuary-scripts#899304efb66dbb72c756051a6b5f8b15a2033642",
     "sanctuary-type-identifiers": "2.0.1"
   },
   "files": [
