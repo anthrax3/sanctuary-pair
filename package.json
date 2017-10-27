@@ -14,10 +14,10 @@
     "test": "npm run lint && sanctuary-test && npm run doctest"
   },
   "dependencies": {
-    "sanctuary-type-classes": "7.0.x"
+    "sanctuary-type-classes": "7.1.x"
   },
   "devDependencies": {
-    "fantasy-land": "3.3.0",
+    "fantasy-land": "3.4.0",
     "fantasy-laws": "git://github.com/fantasyland/fantasy-laws.git#davidchambers/everything",
     "jsverify": "0.8.x",
     "sanctuary-def": "0.13.x",
