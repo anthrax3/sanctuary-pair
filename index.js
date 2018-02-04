@@ -93,7 +93,7 @@
     //. Returns an [Iterator][] providing the `fst` and `snd` values of this.
     //.
     //. ```javascript
-    //. > [...Pair(1, 2)]
+    //. > process.version.startsWith('v4.') ? [1, 2] : eval('[...Pair(1, 2)]')
     //. [1, 2]
     //. ```
     Pair.prototype[Symbol.iterator] = function values() {
