@@ -22,7 +22,7 @@
     "jsverify": "0.8.x",
     "sanctuary-def": "0.13.x",
     "sanctuary-identity": "sanctuary-js/sanctuary-identity#223c7b178abf34c9e238a58c565e7771ad475d2a",
-    "sanctuary-scripts": "sanctuary-js/sanctuary-scripts#bca58462b2c007956b8f9acf7af21e374fdec380",
+    "sanctuary-scripts": "1.0.x",
     "sanctuary-type-identifiers": "2.0.1"
   },
   "files": [
