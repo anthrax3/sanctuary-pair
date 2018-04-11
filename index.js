@@ -52,35 +52,41 @@
 
   'use strict';
 
-  //# Pair :: (a, b) -> Pair a b
+  //# Pair :: a -> b -> Pair a b
   //.
   //. Takes two values of any type and returns a Pair of the given values.
   //.
   //. ```javascript
-  //. > Pair(1, 2)
-  //. Pair(1, 2)
+  //. > Pair(1)(2)
+  //. Pair(1)(2)
   //. ```
-  function Pair(fst, snd) {
-    if (!(this instanceof Pair)) return new Pair(fst, snd);
+  function Pair(fst) {
+    return function(snd) {
+      return new _Pair(fst, snd);
+    };
+  }
+
+  function _Pair(fst, snd) {
+    this.constructor = Pair;
     this.fst = fst;
     this.snd = snd;
 
     //  Add "fantasy-land/concat" method conditionally so that
-    //  Pair('abc', 'def') satisfies the requirements of Semigroup but
-    //  Pair(123, 456) does not.
-    if (Z.Semigroup.test(this.fst)) {
-      if (Z.Semigroup.test(this.snd)) {
+    //  Pair('abc')('def') satisfies the requirements of Semigroup but
+    //  Pair(123)(456) does not.
+    if (Z.Semigroup.test(fst)) {
+      if (Z.Semigroup.test(snd)) {
         this['fantasy-land/concat'] = Pair$prototype$concat;
       }
       this['fantasy-land/ap'] = Pair$prototype$ap;
       this['fantasy-land/chain'] = Pair$prototype$chain;
     }
 
-    if (Z.Setoid.test(this.fst) && Z.Setoid.test(this.snd)) {
+    if (Z.Setoid.test(fst) && Z.Setoid.test(snd)) {
       this['fantasy-land/equals'] = Pair$prototype$equals;
     }
 
-    if (Z.Ord.test(this.fst) && Z.Ord.test(this.snd)) {
+    if (Z.Ord.test(fst) && Z.Ord.test(snd)) {
       this['fantasy-land/lte'] = Pair$prototype$lte;
     }
   }
@@ -93,10 +99,10 @@
     //. Returns an [Iterator][] providing the `fst` and `snd` values of this.
     //.
     //. ```javascript
-    //. > process.version.startsWith('v4.') ? [1, 2] : eval('[...Pair(1, 2)]')
+    //. > process.version.startsWith('v4.') ? [1, 2] : eval('[...Pair(1)(2)]')
     //. [1, 2]
     //. ```
-    Pair.prototype[Symbol.iterator] = function values() {
+    _Pair.prototype[Symbol.iterator] = function values() {
       return [this.fst, this.snd][Symbol.iterator]();
     };
   }
@@ -117,10 +123,10 @@
   //. are both Pairs, and the `fst` and `snd` values for both are equal.
   //.
   //. ```javascript
-  //. > Z.equals(Pair([1, 2, 3], [3, 2, 1]), Pair([1, 2, 3], [3, 2, 1]))
+  //. > Z.equals(Pair([1, 2, 3])([3, 2, 1]), Pair([1, 2, 3])([3, 2, 1]))
   //. true
   //.
-  //. > Z.equals(Pair([1, 2, 3], [3, 2, 1]), Pair([1, 2, 3], [1, 2, 3]))
+  //. > Z.equals(Pair([1, 2, 3])([3, 2, 1]), Pair([1, 2, 3])([1, 2, 3]))
   //. false
   //. ```
   function Pair$prototype$equals(other) {
@@ -134,13 +140,13 @@
   //. than or equal.
   //.
   //. ```javascript
-  //. > Z.lte(Pair(0, 1), Pair(0, 1))
+  //. > Z.lte(Pair(0)(1), Pair(0)(1))
   //. true
   //.
-  //. > Z.lte(Pair(0, 1), Pair(1, 1))
+  //. > Z.lte(Pair(0)(1), Pair(1)(1))
   //. true
   //.
-  //. > Z.lte(Pair(1, 1), Pair(0, 1))
+  //. > Z.lte(Pair(1)(1), Pair(0)(1))
   //. false
   //. ```
   function Pair$prototype$lte(other) {
@@ -155,11 +161,11 @@
   //. `snd` value of `p`.
   //.
   //. ```javascript
-  //. > Z.compose(Pair('b', true), Pair(1, 'a'))
-  //. Pair(1, true)
+  //. > Z.compose(Pair('b')(true), Pair(1)('a'))
+  //. Pair(1)(true)
   //. ```
-  Pair.prototype['fantasy-land/compose'] = function compose(other) {
-    return Pair(this.fst, other.snd);
+  _Pair.prototype['fantasy-land/compose'] = function compose(other) {
+    return Pair(this.fst)(other.snd);
   };
 
   //# Pair#fantasy-land/concat :: (Semigroup a, Semigroup b) => Pair a b ~> Pair a b -> Pair a b
@@ -169,11 +175,11 @@
   //. `a` and `b` must both have a [Semigroup][].
   //.
   //. ```javascript
-  //. > Z.concat(Pair([1, 2, 3], [6, 5, 4]), Pair([4, 5, 6], [3, 2, 1]))
-  //. Pair([1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1])
+  //. > Z.concat(Pair([1, 2, 3])([6, 5, 4]), Pair([4, 5, 6])([3, 2, 1]))
+  //. Pair([1, 2, 3, 4, 5, 6])([6, 5, 4, 3, 2, 1])
   //. ```
   function Pair$prototype$concat(other) {
-    return Pair(Z.concat(this.fst, other.fst), Z.concat(this.snd, other.snd));
+    return Pair(Z.concat(this.fst, other.fst))(Z.concat(this.snd, other.snd));
   }
 
   //# Pair#fantasy-land/map :: Pair a b ~> (b -> c) -> Pair a c
@@ -185,11 +191,11 @@
   //. See also [`Pair#fantasy-land/bimap`][].
   //.
   //. ```javascript
-  //. > Z.map(Math.sqrt, Pair('hello', 64))
-  //. Pair('hello', 8)
+  //. > Z.map(Math.sqrt, Pair('hello')(64))
+  //. Pair('hello')(8)
   //. ```
-  Pair.prototype['fantasy-land/map'] = function map(f) {
-    return Pair(this.fst, f(this.snd));
+  _Pair.prototype['fantasy-land/map'] = function map(f) {
+    return Pair(this.fst)(f(this.snd));
   };
 
   //# Pair#fantasy-land/bimap :: Pair a b ~> (a -> b) -> (c -> d) -> Pair b d
@@ -203,11 +209,11 @@
   //. values.
   //.
   //. ```javascript
-  //. > Z.bimap(s => s + ' there', Math.sqrt, Pair('hello', 64))
-  //. Pair('hello there', 8)
+  //. > Z.bimap(s => s + ' there', Math.sqrt, Pair('hello')(64))
+  //. Pair('hello there')(8)
   //. ```
-  Pair.prototype['fantasy-land/bimap'] = function bimap(f, g) {
-    return Pair(f(this.fst), g(this.snd));
+  _Pair.prototype['fantasy-land/bimap'] = function bimap(f, g) {
+    return Pair(f(this.fst))(g(this.snd));
   };
 
   //# Pair#fantasy-land/ap :: Semigroup a => Pair a b ~> Pair a (b -> c) -> Pair a c
@@ -218,11 +224,11 @@
   //. `a` must have a [Semigroup][].
   //.
   //. ```javascript
-  //. > Z.ap(Pair('hello', Math.sqrt), Pair(' there', 64))
-  //. Pair('hello there', 8)
+  //. > Z.ap(Pair('hello')(Math.sqrt), Pair(' there')(64))
+  //. Pair('hello there')(8)
   //. ```
   function Pair$prototype$ap(other) {
-    return Pair(Z.concat(other.fst, this.fst), other.snd(this.snd));
+    return Pair(Z.concat(other.fst, this.fst))(other.snd(this.snd));
   }
 
   //# Pair#fantasy-land/chain :: Semigroup a => Pair a b ~> (b -> Pair a c) -> Pair a c
@@ -233,12 +239,12 @@
   //. value of `p`. `a` must have a [Semigroup][].
   //.
   //. ```javascript
-  //. > Z.chain(n => Pair([n], n + 1), Pair([1], 2))
-  //. Pair([1, 2], 3)
+  //. > Z.chain(n => Pair([n])(n + 1), Pair([1])(2))
+  //. Pair([1, 2])(3)
   //. ```
   function Pair$prototype$chain(f) {
     var result = f(this.snd);
-    return Pair(Z.concat(this.fst, result.fst), result.snd);
+    return Pair(Z.concat(this.fst, result.fst))(result.snd);
   }
 
   //# Pair#fantasy-land/reduce :: Pair a b ~> ((c, a) -> c, c) -> c
@@ -248,10 +254,10 @@
   //. value of this.
   //.
   //. ```javascript
-  //. > Z.reduce(Z.concat, [1, 2, 3], Pair('irrelevant', [4, 5, 6]))
+  //. > Z.reduce(Z.concat, [1, 2, 3], Pair('irrelevant')([4, 5, 6]))
   //. [1, 2, 3, 4, 5, 6]
   //. ```
-  Pair.prototype['fantasy-land/reduce'] = function reduce(f, x) {
+  _Pair.prototype['fantasy-land/reduce'] = function reduce(f, x) {
     return f(x, this.snd);
   };
 
@@ -263,14 +269,11 @@
   //. result of applying the first function to the `snd` value of this.
   //.
   //. ```javascript
-  //. > Z.traverse(Array, x => [x, x], Pair(0, 1))
-  //. [Pair(0, 1), Pair(0, 1)]
+  //. > Z.traverse(Array, x => [x, x], Pair(0)(1))
+  //. [Pair(0)(1), Pair(0)(1)]
   //. ```
-  Pair.prototype['fantasy-land/traverse'] = function traverse(typeRep, f) {
-    var pair = this;
-    return Z.map(function(x) {
-      return Pair(pair.fst, x);
-    }, f(pair.snd));
+  _Pair.prototype['fantasy-land/traverse'] = function traverse(typeRep, f) {
+    return Z.map(Pair(this.fst), f(this.snd));
   };
 
   //# Pair#fantasy-land/extend :: Pair a b ~> (Pair a b -> c) -> Pair a c
@@ -280,11 +283,11 @@
   //. function to `this`.
   //.
   //. ```javascript
-  //. > Z.extend(pair => Z.extract(pair) + 1, Pair('forever', 99))
-  //. Pair('forever', 100)
+  //. > Z.extend(pair => Z.extract(pair) + 1, Pair('forever')(99))
+  //. Pair('forever')(100)
   //. ```
-  Pair.prototype['fantasy-land/extend'] = function extend(f) {
-    return Pair(this.fst, f(this));
+  _Pair.prototype['fantasy-land/extend'] = function extend(f) {
+    return Pair(this.fst)(f(this));
   };
 
   //# Pair#fantasy-land/extract :: Pair a b ~> () -> b
@@ -294,10 +297,10 @@
   //. See also [`Pair.snd`][].
   //.
   //. ```javascript
-  //. > Z.extract(Pair('the answer is', 42))
+  //. > Z.extract(Pair('the answer is')(42))
   //. 42
   //. ```
-  Pair.prototype['fantasy-land/extract'] = function extract() {
+  _Pair.prototype['fantasy-land/extract'] = function extract() {
     return this.snd;
   };
 
@@ -306,11 +309,11 @@
   //. Returns the string representation of the Pair.
   //.
   //. ```javascript
-  //. > Z.toString(Pair(1, 2))
-  //. 'Pair(1, 2)'
+  //. > Z.toString(Pair(1)(2))
+  //. 'Pair(1)(2)'
   //. ```
-  Pair.prototype.toString = function toString() {
-    return 'Pair(' + Z.toString(this.fst) + ', ' + Z.toString(this.snd) + ')';
+  _Pair.prototype.toString = function toString() {
+    return 'Pair(' + Z.toString(this.fst) + ')(' + Z.toString(this.snd) + ')';
   };
 
   //# Pair.fst :: Pair a b -> a
@@ -318,7 +321,7 @@
   //. Returns the `fst` value of this.
   //.
   //. ```javascript
-  //. > Pair.fst(Pair('hello', 42))
+  //. > Pair.fst(Pair('hello')(42))
   //. 'hello'
   //. ```
   Pair.fst = function fst(p) { return p.fst; };
@@ -330,7 +333,7 @@
   //. See also [`Pair#fantasy-land/extract`][].
   //.
   //. ```javascript
-  //. > Pair.snd(Pair('the answer is', 42))
+  //. > Pair.snd(Pair('the answer is')(42))
   //. 42
   //. ```
   Pair.snd = function snd(p) { return p.snd; };
@@ -341,10 +344,10 @@
   //. and whose `snd` value is the same as the `fst` value of this.
   //.
   //. ```javascript
-  //. > Pair.swap(Pair(1, 2))
-  //. Pair(2, 1)
+  //. > Pair.swap(Pair(1)(2))
+  //. Pair(2)(1)
   //. ```
-  Pair.swap = function(p) { return Pair(p.snd, p.fst); };
+  Pair.swap = function(p) { return Pair(p.snd)(p.fst); };
 
   return Pair;
 
