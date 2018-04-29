@@ -1,4 +1,15 @@
 {
   "root": true,
-  "extends": ["./node_modules/sanctuary-style/eslint-es3.json"]
+  "extends": ["./node_modules/sanctuary-style/eslint-es3.json"],
+  "overrides": [
+    {
+      "files": ["*.md"],
+      "plugins": ["markdown"],
+      "env": {"es6": true},
+      "globals": {"Pair": false, "Z": false},
+      "rules": {
+        "strict": ["off"]
+      }
+    }
+  ]
 }
